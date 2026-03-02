@@ -1,0 +1,40 @@
+{
+  "version": "0.2.1",
+  "tasks": [
+    {
+      "taskName": "Ralph Loop 1 - Infrastructure",
+      "appliesTo": "/",
+      "type": "launch",
+      "command": "${env.COMSPEC}",
+      "args": "/c powershell -NoExit -ExecutionPolicy Bypass -File scripts\\ralph-loop.ps1 loop-1"
+    },
+    {
+      "taskName": "Ralph Loop 2 - Full Architecture",
+      "appliesTo": "/",
+      "type": "launch",
+      "command": "${env.COMSPEC}",
+      "args": "/c powershell -NoExit -ExecutionPolicy Bypass -File scripts\\ralph-loop.ps1 loop-2"
+    },
+    {
+      "taskName": "Run pytest",
+      "appliesTo": "/",
+      "type": "launch",
+      "command": "${env.COMSPEC}",
+      "args": "/c .venv\\Scripts\\pytest.exe tests -v & pause"
+    },
+    {
+      "taskName": "Docker Compose Up (DB + Redis)",
+      "appliesTo": "/",
+      "type": "launch",
+      "command": "${env.COMSPEC}",
+      "args": "/c docker-compose up -d timescaledb redis & pause"
+    },
+    {
+      "taskName": "Docker Compose Down",
+      "appliesTo": "/",
+      "type": "launch",
+      "command": "${env.COMSPEC}",
+      "args": "/c docker-compose down & pause"
+    }
+  ]
+}

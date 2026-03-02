@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg15
+    container_name: ralph-timescaledb
+    environment:
+      POSTGRES_USER: ralph
+      POSTGRES_PASSWORD: ralph_secret
+      POSTGRES_DB: ralph_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ralph -d ralph_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ralph-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ralph-app
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://ralph:ralph_secret@timescaledb:5432/ralph_db
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "8000:8000"
+
+volumes:
+  timescaledb_data:
+  redis_data:

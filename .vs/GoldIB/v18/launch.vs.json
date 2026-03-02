@@ -1,0 +1,14 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "python",
+      "interpreter": ".venv\\Scripts\\python.exe",
+      "name": "Run GoldIB App",
+      "project": "GoldIB.pyproj",
+      "projectTarget": "",
+      "scriptArguments": ""
+    }
+  ]
+}
