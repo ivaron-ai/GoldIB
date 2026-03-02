@@ -6,12 +6,14 @@
     <ProjectGuid>{617BF9B2-2A84-44AE-9F36-B72C47C8208F}</ProjectGuid>
     <ProjectHome>.</ProjectHome>
     <StartupFile>src\main.py</StartupFile>
-    <SearchPath></SearchPath>
+    <SearchPath>
+    </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888A0-9F3D-457C-B088-3A5042F75D52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <VirtualEnvBaseName>.venv</VirtualEnvBaseName>
+    <InterpreterId>MSBuild|.venv|$(MSBuildProjectFullPath)</InterpreterId>
     <Name>GoldIB</Name>
     <RootNamespace>GoldIB</RootNamespace>
   </PropertyGroup>
@@ -40,8 +42,24 @@
     <Content Include="Dockerfile" />
     <Content Include="README.md" />
     <!-- Scripts -->
-    <Content Include="ralph-loop.ps1" />
     <Content Include="scripts\ralph-loop.ps1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Interpreter Include=".venv\">
+      <Id>{A25F3226-8FFB-426C-9362-4ED65B6FA19A}</Id>
+      <Version>3.11</Version>
+      <Description>GoldIB .venv (Python 3.11)</Description>
+      <InterpreterPath>.venv\Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>.venv\Scripts\pythonw.exe</WindowsInterpreterPath>
+      <LibraryPath>.venv\Lib\</LibraryPath>
+      <Architecture>X64</Architecture>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+    </Interpreter>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="scripts\" />
+    <Folder Include="src\" />
+    <Folder Include="tests\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets')" />
   <Import Project="C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Microsoft\VisualStudio\v18.0\Python Tools\Microsoft.PythonTools.targets" Condition="!Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets')" />
