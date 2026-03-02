@@ -60,6 +60,33 @@ $ExistingSessions = (Get-ChildItem -Path $SessionDir -Filter "iteration-*.md" -E
 $iteration = $ExistingSessions
 $maxIteration = $ExistingSessions + $MaxIterations
 
+# Git integration
+$GitBranch = "feature/$JobName"
+$RepoRootForGit = $PSScriptRoot
+$GitAvailable = $null -ne (Get-Command git -ErrorAction SilentlyContinue)
+
+function Invoke-Git {
+    param([string[]]$Args)
+    Push-Location $RepoRootForGit
+    try { & git @Args } finally { Pop-Location }
+}
+
+if ($GitAvailable) {
+    $currentBranch = (Invoke-Git @('branch', '--show-current')) 2>&1
+    if ($currentBranch -ne $GitBranch) {
+        $branchExists = (Invoke-Git @('branch', '--list', $GitBranch)) -ne ''
+        if ($branchExists) {
+            Write-Host "Switching to existing branch: $GitBranch" -ForegroundColor Cyan
+            Invoke-Git @('checkout', $GitBranch)
+        } else {
+            Write-Host "Creating feature branch: $GitBranch" -ForegroundColor Cyan
+            Invoke-Git @('checkout', '-b', $GitBranch)
+        }
+    } else {
+        Write-Host "Already on branch: $GitBranch" -ForegroundColor Cyan
+    }
+}
+
 Write-Host "========================================" -ForegroundColor Green
 Write-Host " Ralph Agent Loop for Copilot CLI" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
@@ -71,6 +98,7 @@ Write-Host "Stop hook: $StopHook"
 Write-Host "Copilot args: $CopilotArgs"
 Write-Host "Model: $ModelName"
 Write-Host "Session directory: $SessionDir"
+if ($GitAvailable) { Write-Host "Git branch: $GitBranch" }
 
 if ($iteration -gt 0) {
     Write-Host "Resuming from iteration $($iteration + 1) (found $iteration existing sessions)" -ForegroundColor Yellow
@@ -124,6 +152,16 @@ while ($iteration -lt $maxIteration) {
     if ($CopilotExit -ne 0) {
         Write-Host "Warning: Copilot exited with code $CopilotExit" -ForegroundColor Red
     }
+
+    # Git: snapshot progress after each iteration
+    if ($GitAvailable) {
+        Invoke-Git @('add', '-A')
+        $snapMsg = "wip($JobName): iteration $iteration progress`n`nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+        Invoke-Git @('diff', '--cached', '--quiet')
+        if ($LASTEXITCODE -ne 0) {
+            Invoke-Git @('commit', '-m', $snapMsg)
+        }
+    }
     Write-Host ""
     Write-Host "Checking completion criteria..." -ForegroundColor Yellow
     
@@ -145,6 +183,21 @@ while ($iteration -lt $maxIteration) {
             Write-Host " [OK] Task completed successfully!" -ForegroundColor Green
             Write-Host " Completed in $iteration iteration(s)" -ForegroundColor Green
             Write-Host "========================================" -ForegroundColor Green
+
+            # Git: commit all changes and push
+            if ($GitAvailable) {
+                Write-Host ""
+                Write-Host "Committing and pushing to $GitBranch..." -ForegroundColor Cyan
+                Invoke-Git @('add', '-A')
+                $commitMsg = "feat($JobName): complete loop - $iteration iteration(s)`n`nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+                Invoke-Git @('diff', '--cached', '--quiet')
+                if ($LASTEXITCODE -ne 0) {
+                    Invoke-Git @('commit', '-m', $commitMsg)
+                }
+                Invoke-Git @('push', '--set-upstream', 'origin', $GitBranch)
+                Write-Host "Pushed to origin/$GitBranch" -ForegroundColor Green
+            }
+
             exit 0
         } else {
             Write-Host "Task not yet complete, continuing loop..." -ForegroundColor Yellow
